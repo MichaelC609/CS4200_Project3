@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 # user input
 def getinput():
@@ -36,8 +37,43 @@ def getmove(board):
         return x, y
 # evaluation function
 
-# search tree 
-## alpha beta pruning
+# alpha beta serach
+
+def terminal(state):
+    # returns true if someone won or the board is filled
+
+def successors(state):
+    # returns a list of (action, new board) for every neighbor
+
+def utility(state):
+    # return big pos number if computer wins, big neg number if computer loses, or evaluation(state) if we're still playing
+
+def maxValue(state, alpha, beta):
+    if terminal(state):
+        return utility(state)
+    v = -math.inf
+    for a,s in successors(state):
+        v = max(v, minValue(s, alpha, beta))
+        if v >= beta:
+            return v
+        alpha = max(alpha, v)
+    return v
+
+def minValue(state, alpha, beta):
+    if terminal(state):
+        return utility(state)
+    v = math.inf
+    for a,s in successors(state):
+        v = min(v, maxValue(s, alpha, beta))
+        if v <= alpha:
+            return v
+        beta = min(beta, v)
+    return v
+
+def alphaBetaSearch(board):
+    v = maxValue(state, -inf, inf)
+    # need to figure out how to identify the sucessor that gives us v value 
+    return action
 
 def printBoard(board):
     print(" 1 2 3 4 5 6 7 8")
