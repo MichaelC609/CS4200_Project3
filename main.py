@@ -41,9 +41,21 @@ def getmove(board):
 
 def terminal(state):
     # returns true if someone won or the board is filled
+    # if someone won, return true
+    if not np.any(state == '-'):
+        return True
 
-def successors(state):
+def successors(state, player):
     # returns a list of (action, new board) for every neighbor
+    # player as X or O for which player it is
+    succs = []
+    for row in range(8):
+        for col in range(8):
+            if state[row][col] == "-":
+                newstate = state.copy
+                newstate[row][col] = player
+                succs.append(((row, col), newstate))
+    return succs
 
 def utility(state):
     # return big pos number if computer wins, big neg number if computer loses, or evaluation(state) if we're still playing
@@ -86,8 +98,6 @@ def printBoard(board):
             print(board[i][j], end="")
 
         print()
-
-
 
 # main ()
 def main():
