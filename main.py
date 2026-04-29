@@ -23,28 +23,17 @@ def getmove(board):
         
         col, row = move[0].lower , int(move[1])
 
-        if col not in legalcol or row inot in legalrow:
+        if col not in legalcol or row not in legalrow:
             print("Column must be an integer between 1 and 8. Row must be a letter between A and H.")
             continue
 
         x, y = legalcol.index(col), row-1
 
-        if board[y][x] == "-":
+        if board[y][x] != "-":
             print("That space is already taken.")
             continue
 
         return x, y
-    
-
-    # translate to the coordinate on an 8x8 grid
-
-    # make sure the move is legal 
-    
-    # check the board to make sure space isn't filled
-
-    # if all checks out, then return the move as a coordinate
-    return 
-
 # evaluation function
 
 # search tree 
