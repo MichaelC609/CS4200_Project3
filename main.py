@@ -39,6 +39,23 @@ def getmove(board):
 # search tree 
 ## alpha beta pruning
 
-# print board
+def printBoard(board):
+    print(" 1 2 3 4 5 6 7 8")
+    rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+
+    for i in range(8):
+        print(rows[i], end=" ")
+
+        for j in range(8):
+            print(board[i][j], end="")
+
+        print()
+
+
 
 # main ()
+def main():
+    ...
+
+if __name__ == "__main__":
+    main()
