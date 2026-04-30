@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import time
 
 # user input
 def getinput():
@@ -144,10 +145,11 @@ def scoreWindow(window, player):
 # alpha beta search
 
 def terminal(state):
-    # returns true if someone won or the board is filled
-    # if someone won, return true
+    if checkWinner(state) is not None:
+        return True
     if not np.any(state == '-'):
         return True
+    return False
 
 def successors(state, player):
     # returns a list of (action, new board) for every neighbor
@@ -162,37 +164,43 @@ def successors(state, player):
     return succs
 
 def utility(state, player):
-    # return big pos number if computer wins, big neg number if computer loses, or evaluation(state) if we're still playing
+    return evaluate(state)
 
-def maxValue(state, alpha, beta, player):
-    if terminal(state):
+def maxValue(state, alpha, beta, player, depth):
+    if terminal(state) or depth == 0:
         return utility(state, player)
     v = -math.inf
     opp = 'O' if player == 'X' else 'X'
     for a,s in successors(state, player):
-        v = max(v, minValue(s, alpha, beta, player))
+        v = max(v, minValue(s, alpha, beta, player, depth - 1))
         if v >= beta:
             return v
         alpha = max(alpha, v)
     return v
 
-def minValue(state, alpha, beta, player):
-    if terminal(state):
+def minValue(state, alpha, beta, player, depth):
+    if terminal(state) or depth == 0:
         return utility(state, player)
     v = math.inf
     opp = 'O' if player == 'X' else 'X'
     for a,s in successors(state, opp):
-        v = min(v, maxValue(s, alpha, beta, player))
+        v = min(v, maxValue(s, alpha, beta, player, depth - 1))
         if v <= alpha:
             return v
         beta = min(beta, v)
     return v
 
-def alphaBetaSearch(board, player):
-    v = maxValue(board, -math.inf, math.inf, player)
-    opp = 'O' if player == 'X' else 'X'
-    # need to figure out how to identify the sucessor that gives us v value 
-    return action
+def alphaBetaSearch(board, player, depth = 5):
+    start_time = time.perf_counter()
+    best_action = None
+    best_score = -math.inf
+    for action, state in successors(board, player):
+        score = minValue(state, -math.inf, math.inf, player, depth)
+        if score > best_score:
+            best_score = score
+            best_action = action
+    runtime = time.perf_counter() - start_time
+    return best_action, runtime
 
 def printBoard(board):
     print(" 1 2 3 4 5 6 7 8")
