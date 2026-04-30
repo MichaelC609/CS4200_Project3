@@ -13,7 +13,7 @@ def getinput():
 
 def getmove(board):
     legalrow = ['a','b','c','d','e','f','g','h']
-    legalcol = range(1,9)
+    legalcol = list(range(1,9))
 
     while True:
         move = input("Choose your next move: ").strip()
@@ -22,13 +22,13 @@ def getmove(board):
             print("Invalid input. Please enter a move like D4.")
             continue
         
-        col, row = move[0].lower , int(move[1])
+        row, col = move[0].lower() , int(move[1])
 
         if col not in legalcol or row not in legalrow:
             print("Column must be an integer between 1 and 8. Row must be a letter between A and H.")
             continue
 
-        x, y = legalcol.index(col), row-1
+        x, y = legalcol.index(col), legalrow.index(row)
 
         if board[y][x] != "-":
             print("That space is already taken.")
@@ -37,7 +37,7 @@ def getmove(board):
         return x, y
 # evaluation function
 
-# alpha beta serach
+# alpha beta search
 
 def terminal(state):
     # returns true if someone won or the board is filled
@@ -52,38 +52,41 @@ def successors(state, player):
     for row in range(8):
         for col in range(8):
             if state[row][col] == "-":
-                newstate = state.copy
+                newstate = state.copy()
                 newstate[row][col] = player
                 succs.append(((row, col), newstate))
     return succs
 
-def utility(state):
+def utility(state, player):
     # return big pos number if computer wins, big neg number if computer loses, or evaluation(state) if we're still playing
 
-def maxValue(state, alpha, beta):
+def maxValue(state, alpha, beta, player):
     if terminal(state):
-        return utility(state)
+        return utility(state, player)
     v = -math.inf
-    for a,s in successors(state):
-        v = max(v, minValue(s, alpha, beta))
+    opp = 'O' if player == 'X' else 'X'
+    for a,s in successors(state, player):
+        v = max(v, minValue(s, alpha, beta, player))
         if v >= beta:
             return v
         alpha = max(alpha, v)
     return v
 
-def minValue(state, alpha, beta):
+def minValue(state, alpha, beta, player):
     if terminal(state):
-        return utility(state)
+        return utility(state, player)
     v = math.inf
-    for a,s in successors(state):
-        v = min(v, maxValue(s, alpha, beta))
+    opp = 'O' if player == 'X' else 'X'
+    for a,s in successors(state, opp):
+        v = min(v, maxValue(s, alpha, beta, player))
         if v <= alpha:
             return v
         beta = min(beta, v)
     return v
 
-def alphaBetaSearch(board):
-    v = maxValue(state, -inf, inf)
+def alphaBetaSearch(board, player):
+    v = maxValue(board, -math.inf, math.inf, player)
+    opp = 'O' if player == 'X' else 'X'
     # need to figure out how to identify the sucessor that gives us v value 
     return action
 
