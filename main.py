@@ -37,6 +37,110 @@ def getmove(board):
         return x, y
 # evaluation function
 
+def checkWinner(board):
+    # check horizontal wins
+    for r in range(8):
+        for c in range(8 - 4 + 1):           # cols 0-4
+            window = [board[r][c+k] for k in range(4)]
+            if window.count("X") == 4: return "X"
+            if window.count("O") == 4: return "O"
+
+    # check vertical wins
+    for c in range(8):
+        for r in range(8 - 4 + 1):           # rows 0-4
+            window = [board[r+k][c] for k in range(4)]
+            if window.count("X") == 4: return "X"
+            if window.count("O") == 4: return "O"
+
+    # no diagonals per spec
+    return None                               # no winner yet
+
+def evaluate(board):
+    ### evaluate score for human and player threats
+
+    # check terminal states first
+    winner = checkWinner(board)
+    if winner == "X": return  1_000_000   # computer wins
+    if winner == "O": return -1_000_000   # human wins
+
+    # initialize score to 0
+    score = 0
+
+    # add to score for computer threat, subtract for human threat
+    score += evaluatePlayer(board, "X")
+    score -= evaluatePlayer(board, "O")
+
+    # bonus for double threats (two simultaneous 3-in-a-rows = unblockable)
+    score += doubleThreatBonus(board, "X")
+    score -= doubleThreatBonus(board, "O")
+
+    # small center bias: center columns appear in more windows
+    score += centerBias(board, "X")
+    score -= centerBias(board, "O")
+
+    return score
+
+# given a board and player, evaluate player score
+def evaluatePlayer(board, player):
+    # Scan all lines on board and score windows of 4 for given player
+    score = 0
+
+    for window in getAllWindows(board):
+        score += scoreWindow(window, player)
+
+    return score
+
+def doubleThreatBonus(board, player):
+    # Count open threats: windows where player has 3 pieces and 1 empty
+    # Two or more at once = effectively unblockable position
+    threats = sum(
+        1 for w in getAllWindows(board)
+        if w.count(player) == 3 and w.count("-") == 1
+    )
+    return 50_000 if threats >= 2 else 0
+
+def centerBias(board, player):
+    # Center columns (3 and 4, 0-indexed) participate in more windows of 4
+    score = 0
+    for r in range(8):
+        for c in [3, 4]:
+            if board[r][c] == player:
+                score += 30
+    return score
+
+def getAllWindows(board):
+    windows = []
+
+    # scan all horizontal windows of 4
+    for r in range(8):
+        for c in range(8 - 4 + 1):           # cols 0-4 (5 starting positions)
+            windows.append([board[r][c+k] for k in range(4)])
+
+    # scan all vertical windows of 4
+    for c in range(8):
+        for r in range(8 - 4 + 1):           # rows 0-4 (5 starting positions)
+            windows.append([board[r+k][c] for k in range(4)])
+
+    # no diagonals — spec says diagonals do NOT count
+
+    return windows
+
+def scoreWindow(window, player):
+    opponent = "O" if player == "X" else "X"
+
+    # if opponent is anywhere in the window, it's blocked — worthless
+    if opponent in window:
+        return 0
+
+    count = window.count(player)
+
+    # map piece count to score (exponential so 3-in-a-row > ten 2-in-a-rows)
+    if count == 4: return 100_000    # winning window
+    if count == 3: return  10_000    # one away from winning
+    if count == 2: return    100     # building a threat
+    return 0
+
+
 # alpha beta search
 
 def terminal(state):
