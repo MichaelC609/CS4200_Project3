@@ -147,7 +147,7 @@ def scoreWindow(window, player):
 def terminal(state):
     if checkWinner(state) is not None:
         return True
-    if not np.any(state == '-'):
+    if all(state[r][c] != "-" for r in range(8) for c in range(8)):
         return True
     return False
 
@@ -158,7 +158,7 @@ def successors(state, player):
     for row in range(8):
         for col in range(8):
             if state[row][col] == "-":
-                newstate = state.copy()
+                newstate = [r[:] for r in state]
                 newstate[row][col] = player
                 succs.append(((row, col), newstate))
     return succs
@@ -166,41 +166,53 @@ def successors(state, player):
 def utility(state, player):
     return evaluate(state)
 
-def maxValue(state, alpha, beta, player, depth):
-    if terminal(state) or depth == 0:
+def maxValue(state, alpha, beta, player, depth, deadline):
+    if terminal(state) or depth == 0 or time.perf_counter() >= deadline:
         return utility(state, player)
     v = -math.inf
     opp = 'O' if player == 'X' else 'X'
     for a,s in successors(state, player):
-        v = max(v, minValue(s, alpha, beta, player, depth - 1))
+        v = max(v, minValue(s, alpha, beta, player, depth - 1, deadline))
         if v >= beta:
             return v
         alpha = max(alpha, v)
     return v
 
-def minValue(state, alpha, beta, player, depth):
-    if terminal(state) or depth == 0:
+def minValue(state, alpha, beta, player, depth, deadline):
+    if terminal(state) or depth == 0 or time.perf_counter() >= deadline:
         return utility(state, player)
     v = math.inf
     opp = 'O' if player == 'X' else 'X'
     for a,s in successors(state, opp):
-        v = min(v, maxValue(s, alpha, beta, player, depth - 1))
+        v = min(v, maxValue(s, alpha, beta, player, depth - 1, deadline))
         if v <= alpha:
             return v
         beta = min(beta, v)
     return v
 
-def alphaBetaSearch(board, player, depth = 5):
-    start_time = time.perf_counter()
+def alphaBetaSearch(board, player, think_time=5):
+    deadline = time.perf_counter() + think_time
     best_action = None
-    best_score = -math.inf
-    for action, state in successors(board, player):
-        score = minValue(state, -math.inf, math.inf, player, depth)
-        if score > best_score:
-            best_score = score
-            best_action = action
-    runtime = time.perf_counter() - start_time
-    return best_action, runtime
+
+    for depth in range(1, 65):
+        if time.perf_counter() >= deadline:
+            break
+        current_best_action = None
+        current_best_score = -math.inf
+        for action, state in successors(board, player):
+            if time.perf_counter() >= deadline:
+                break
+            score = minValue(state, -math.inf, math.inf, player, depth - 1, deadline)
+            if score > current_best_score:
+                current_best_score = score
+                current_best_action = action
+        # only update best_action if we finished this depth completely
+        if time.perf_counter() < deadline and current_best_action is not None:
+            best_action = current_best_action
+        if current_best_score >= 1_000_000:
+            break   # found a guaranteed win, stop early
+
+    return best_action
 
 def printBoard(board):
     print(" 1 2 3 4 5 6 7 8")
@@ -216,7 +228,39 @@ def printBoard(board):
 
 # main ()
 def main():
-    ...
+    board = [["-"] * 8 for _ in range(8)]
+    first, think = getinput()
+    human_turn = (first == "y")
+    row_labels = ['a','b','c','d','e','f','g','h']
+
+    printBoard(board)
+
+    while True:
+        if human_turn:
+            x, y = getmove(board)
+            board[y][x] = "O"
+            printBoard(board)
+            if checkWinner(board) == "O":
+                print("You win! Game Over!")
+                break
+        else:
+            print("Computer is thinking...")
+            action = alphaBetaSearch(board, "X", think)
+            if action:
+                row, col = action
+                board[row][col] = "X"
+                label = f"{row_labels[row].upper()}{col+1}"
+                print(f"Computer plays: {label}")
+                printBoard(board)
+                if checkWinner(board) == "X":
+                    print("Computer wins! Game Over!")
+                    break
+
+        if all(board[r][c] != "-" for r in range(8) for c in range(8)):
+            print("It's a draw! Game Over!")
+            break
+
+        human_turn = not human_turn
 
 if __name__ == "__main__":
     main()
