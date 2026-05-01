@@ -17,6 +17,7 @@ def getmove(board):
     legalcol = list(range(1,9))
 
     while True:
+        print()
         move = input("Choose your next move: ").strip()
     
         if len(move) != 2:
@@ -69,11 +70,11 @@ def evaluate(board):
 
     # add to score for computer threat, subtract for human threat
     score += evaluatePlayer(board, "X")
-    score -= evaluatePlayer(board, "O")
+    score -= evaluatePlayer(board, "O") * 2 # prefers to block human threat
 
     # bonus for double threats (two simultaneous 3-in-a-rows = unblockable)
     score += doubleThreatBonus(board, "X")
-    score -= doubleThreatBonus(board, "O")
+    score -= doubleThreatBonus(board, "O") * 2 # prefers to block human threat
 
     # small center bias: center columns appear in more windows
     score += centerBias(board, "X")
@@ -215,15 +216,13 @@ def alphaBetaSearch(board, player, think_time=5):
     return best_action
 
 def printBoard(board):
-    print(" 1 2 3 4 5 6 7 8")
+    print("  1 2 3 4 5 6 7 8")
     rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 
     for i in range(8):
         print(rows[i], end=" ")
-
         for j in range(8):
-            print(board[i][j], end="")
-
+            print(board[i][j], end=" ")
         print()
 
 # main ()
@@ -241,23 +240,28 @@ def main():
             board[y][x] = "O"
             printBoard(board)
             if checkWinner(board) == "O":
+                print()
                 print("You win! Game Over!")
                 break
         else:
+            print()
             print("Computer is thinking...")
             action = alphaBetaSearch(board, "X", think)
             if action:
                 row, col = action
                 board[row][col] = "X"
                 label = f"{row_labels[row].upper()}{col+1}"
+                print()
                 print(f"Computer plays: {label}")
                 printBoard(board)
                 if checkWinner(board) == "X":
+                    print()
                     print("Computer wins! Game Over!")
                     break
 
         if all(board[r][c] != "-" for r in range(8) for c in range(8)):
-            print("It's a draw! Game Over!")
+            print()
+            print("\nIt's a draw! Game Over!")
             break
 
         human_turn = not human_turn
